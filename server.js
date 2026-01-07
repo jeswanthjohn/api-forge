@@ -3,35 +3,38 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 
+import productRoutes from "./routes/products.js";
+
 dotenv.config();
 
 const app = express();
 
-// Middleware
+/* -------------------- Middleware -------------------- */
 app.use(cors());
 app.use(express.json());
 
-// Health check route
+/* -------------------- Routes -------------------- */
+app.use("/api/products", productRoutes);
+
+/* -------------------- Root Route -------------------- */
 app.get("/", (req, res) => {
-  res.json({ status: "API Forge running 🚀" });
+  res.send("REST API is running...");
 });
 
-// MongoDB connection
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log("✅ MongoDB connected successfully");
-  } catch (error) {
-    console.error("❌ MongoDB connection failed");
-    console.error(error.message);
+/* -------------------- Database Connection -------------------- */
+const PORT = process.env.PORT || 5000;
+const MONGODB_URI = process.env.MONGODB_URI;
+
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => {
+    console.log("MongoDB connected successfully");
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection failed:", error.message);
     process.exit(1);
-  }
-};
-
-connectDB();
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+  });
