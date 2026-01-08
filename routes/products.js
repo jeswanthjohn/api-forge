@@ -1,131 +1,18 @@
 import express from "express";
-import Product from "../models/Product.js";
+import {
+  getAllProducts,
+  createProduct,
+  getProductById,
+  updateProduct,
+  deleteProduct,
+} from "../controllers/productController.js";
 
 const router = express.Router();
 
-/**
- * @route   GET /api/products
- * @desc    Get all products
- */
-router.get('/', async (req, res, next) => {
-  try {
-    const { minPrice, maxPrice, category, sort, page = 1, limit = 10 } = req.query;
-
-    const filter = {};
-
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = Number(minPrice);
-      if (maxPrice) filter.price.$lte = Number(maxPrice);
-    }
-
-    if (category) {
-      filter.category = category;
-    }
-
-    const skip = (Number(page) - 1) * Number(limit);
-
-    const products = await Product.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(Number(limit));
-
-    res.status(200).json(products);
-  } catch (err) {
-    next(err);
-  }
-});
-
-
-
-/**
- * @route   POST /api/products
- * @desc    Create a product
- */
-router.post('/', async (req, res, next) => {
-  try {
-    const { name, price } = req.body;
-
-    // ✅ VALIDATION
-    if (!name || price == null) {
-      return res.status(400).json({
-        message: 'Name and price are required'
-      });
-    }
-
-    const product = await Product.create(req.body);
-    res.status(201).json(product);
-  } catch (err) {
-    next(err);
-  }
-});
-
-
-/**
- * @route   GET /api/products/:id
- * @desc    Get single product
- */
-router.get("/:id", async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    res.status(200).json(product);
-  } catch (error) {
-    res.status(400).json({ message: "Invalid product ID" });
-  }
-});
-
-/**
- * @route   PUT /api/products/:id
- * @desc    Update product
- */
-router.put("/:id", async (req, res) => {
-  try {
-    const { name, price } = req.body;
-
-    // ✅ VALIDATION (mirrors POST)
-    if (!name || price == null) {
-      return res.status(400).json({
-        message: "Name and price are required"
-      });
-    }
-
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedProduct) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    res.status(200).json(updatedProduct);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-/**
- * @route   DELETE /api/products/:id
- * @desc    Delete product
- */
-router.delete("/:id", async (req, res) => {
-  try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-
-    if (!deletedProduct) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    res.status(200).json({ message: "Product deleted successfully" });
-  } catch (error) {
-    res.status(400).json({ message: "Invalid product ID" });
-  }
-});
+router.get("/", getAllProducts);
+router.post("/", createProduct);
+router.get("/:id", getProductById);
+router.put("/:id", updateProduct);
+router.delete("/:id", deleteProduct);
 
 export default router;
