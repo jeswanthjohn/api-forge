@@ -7,14 +7,29 @@ const router = express.Router();
  * @route   GET /api/products
  * @desc    Get all products
  */
-router.get("/", async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
-    const products = await Product.find();
+    const { minPrice, maxPrice, category } = req.query;
+
+    const filter = {};
+
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = Number(minPrice);
+      if (maxPrice) filter.price.$lte = Number(maxPrice);
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+
+    const products = await Product.find(filter);
     res.status(200).json(products);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    next(err);
   }
 });
+
 
 /**
  * @route   POST /api/products
