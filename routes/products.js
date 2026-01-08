@@ -42,14 +42,24 @@ router.get('/', async (req, res, next) => {
  * @route   POST /api/products
  * @desc    Create a product
  */
-router.post("/", async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
+    const { name, price } = req.body;
+
+    // ✅ VALIDATION
+    if (!name || price == null) {
+      return res.status(400).json({
+        message: 'Name and price are required'
+      });
+    }
+
     const product = await Product.create(req.body);
     res.status(201).json(product);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+  } catch (err) {
+    next(err);
   }
 });
+
 
 /**
  * @route   GET /api/products/:id
@@ -75,6 +85,15 @@ router.get("/:id", async (req, res) => {
  */
 router.put("/:id", async (req, res) => {
   try {
+    const { name, price } = req.body;
+
+    // ✅ VALIDATION (mirrors POST)
+    if (!name || price == null) {
+      return res.status(400).json({
+        message: "Name and price are required"
+      });
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       req.body,
