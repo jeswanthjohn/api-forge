@@ -9,7 +9,7 @@ const router = express.Router();
  */
 router.get('/', async (req, res, next) => {
   try {
-    const { minPrice, maxPrice, category } = req.query;
+    const { minPrice, maxPrice, category, sort, page = 1, limit = 10 } = req.query;
 
     const filter = {};
 
@@ -23,12 +23,19 @@ router.get('/', async (req, res, next) => {
       filter.category = category;
     }
 
-    const products = await Product.find(filter);
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const products = await Product.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(Number(limit));
+
     res.status(200).json(products);
   } catch (err) {
     next(err);
   }
 });
+
 
 
 /**
