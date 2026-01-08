@@ -16,6 +16,12 @@ app.use(express.json());
 /* -------------------- Routes -------------------- */
 app.use("/api/products", productRoutes);
 
+
+import errorHandler from './middleware/errorHandler.js';
+
+app.use(errorHandler);
+
+
 /* -------------------- Root Route -------------------- */
 app.get("/", (req, res) => {
   res.send("REST API is running...");
