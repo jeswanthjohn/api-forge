@@ -1,23 +1,30 @@
 {
   "name": "api-forge",
   "version": "1.0.0",
-  "description": "Production-ready REST API with security middleware and MongoDB integration",
+  "description": "Production-ready REST API with security middleware, logging, and MongoDB integration",
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
+    "start": "NODE_ENV=production node server.js",
+    "dev": "NODE_ENV=development node --watch server.js",
     "test": "echo \"No tests configured yet\""
   },
-  "keywords": ["rest", "api", "node", "express", "mongodb"],
+  "keywords": [
+    "rest",
+    "api",
+    "node",
+    "express",
+    "mongodb"
+  ],
   "author": "Jeswanth Reddy",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "helmet": "^7.0.0",
     "express-rate-limit": "^7.0.0",
-    "mongoose": "^9.1.2"
+    "helmet": "^7.0.0",
+    "mongoose": "^9.1.2",
+    "morgan": "^1.10.1"
   }
 }

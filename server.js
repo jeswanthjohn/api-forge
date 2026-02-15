@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import morgan from "morgan";
 
 import productRoutes from "./routes/products.js";
 import errorHandler from "./middleware/errorHandler.js";
@@ -25,6 +26,15 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+
+/* -------------------- Logging Middleware -------------------- */
+
+// Log HTTP requests (dev format in development, combined in production)
+if (process.env.NODE_ENV === "production") {
+  app.use(morgan("combined"));
+} else {
+  app.use(morgan("dev"));
+}
 
 /* -------------------- General Middleware -------------------- */
 
