@@ -2,32 +2,49 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 import productRoutes from "./routes/products.js";
+import errorHandler from "./middleware/errorHandler.js";
 
 dotenv.config();
 
 const app = express();
 
-/* -------------------- Middleware -------------------- */
+/* -------------------- Security Middleware -------------------- */
+
+// Set secure HTTP headers
+app.use(helmet());
+
+// Rate limiting (100 requests per 15 minutes per IP)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  message: "Too many requests from this IP, please try again later.",
+});
+
+app.use(limiter);
+
+/* -------------------- General Middleware -------------------- */
+
 app.use(cors());
 app.use(express.json());
 
 /* -------------------- Routes -------------------- */
+
 app.use("/api/products", productRoutes);
 
-
-import errorHandler from './middleware/errorHandler.js';
-
-app.use(errorHandler);
-
-
-/* -------------------- Root Route -------------------- */
 app.get("/", (req, res) => {
   res.send("REST API is running...");
 });
 
+/* -------------------- Global Error Handler -------------------- */
+
+app.use(errorHandler);
+
 /* -------------------- Database Connection -------------------- */
+
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
