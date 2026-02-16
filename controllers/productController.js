@@ -3,26 +3,48 @@ import Product from "../models/Product.js";
 // GET /api/products
 export const getAllProducts = async (req, res, next) => {
   try {
-    const { minPrice, maxPrice, category, sort, page = 1, limit = 10 } = req.query;
+    const {
+      minPrice,
+      maxPrice,
+      category,
+      sort,
+      page = 1,
+      limit = 10,
+    } = req.query;
 
     const filter = {};
 
+    // Price filtering
     if (minPrice || maxPrice) {
       filter.price = {};
       if (minPrice) filter.price.$gte = Number(minPrice);
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
+    // Category filtering
     if (category) {
       filter.category = category;
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
+    // Pagination
+    const pageNumber = Math.max(Number(page), 1);
+    const pageSize = Math.max(Number(limit), 1);
+    const skip = (pageNumber - 1) * pageSize;
+
+    // Safe sorting (whitelisted fields)
+    let sortOption = { createdAt: -1 }; // default sort
+
+    if (sort) {
+      const allowedSortFields = ["price", "-price", "createdAt", "-createdAt"];
+      if (allowedSortFields.includes(sort)) {
+        sortOption = sort;
+      }
+    }
 
     const products = await Product.find(filter)
-      .sort(sort)
+      .sort(sortOption)
       .skip(skip)
-      .limit(Number(limit));
+      .limit(pageSize);
 
     res.status(200).json(products);
   } catch (err) {
