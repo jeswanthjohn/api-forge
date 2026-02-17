@@ -1,4 +1,5 @@
 import Product from "../models/Product.js";
+import AppError from "../utils/AppError.js";
 
 // GET /api/products
 export const getAllProducts = async (req, res, next) => {
@@ -14,25 +15,21 @@ export const getAllProducts = async (req, res, next) => {
 
     const filter = {};
 
-    // Price filtering
     if (minPrice || maxPrice) {
       filter.price = {};
       if (minPrice) filter.price.$gte = Number(minPrice);
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-    // Category filtering
     if (category) {
       filter.category = category;
     }
 
-    // Pagination
     const pageNumber = Math.max(Number(page), 1);
     const pageSize = Math.max(Number(limit), 1);
     const skip = (pageNumber - 1) * pageSize;
 
-    // Safe sorting (whitelisted fields)
-    let sortOption = { createdAt: -1 }; // default sort
+    let sortOption = { createdAt: -1 };
 
     if (sort) {
       const allowedSortFields = ["price", "-price", "createdAt", "-createdAt"];
@@ -58,9 +55,7 @@ export const createProduct = async (req, res, next) => {
     const { name, price } = req.body;
 
     if (!name || price == null) {
-      return res.status(400).json({
-        message: "Name and price are required",
-      });
+      return next(new AppError("Name and price are required", 400));
     }
 
     const product = await Product.create(req.body);
@@ -76,7 +71,7 @@ export const getProductById = async (req, res, next) => {
     const product = await Product.findById(req.params.id);
 
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return next(new AppError("Product not found", 404));
     }
 
     res.status(200).json(product);
@@ -91,9 +86,7 @@ export const updateProduct = async (req, res, next) => {
     const { name, price } = req.body;
 
     if (!name || price == null) {
-      return res.status(400).json({
-        message: "Name and price are required",
-      });
+      return next(new AppError("Name and price are required", 400));
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(
@@ -103,7 +96,7 @@ export const updateProduct = async (req, res, next) => {
     );
 
     if (!updatedProduct) {
-      return res.status(404).json({ message: "Product not found" });
+      return next(new AppError("Product not found", 404));
     }
 
     res.status(200).json(updatedProduct);
@@ -118,10 +111,13 @@ export const deleteProduct = async (req, res, next) => {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
 
     if (!deletedProduct) {
-      return res.status(404).json({ message: "Product not found" });
+      return next(new AppError("Product not found", 404));
     }
 
-    res.status(200).json({ message: "Product deleted successfully" });
+    res.status(200).json({
+      status: "success",
+      message: "Product deleted successfully",
+    });
   } catch (err) {
     next(err);
   }
