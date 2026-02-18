@@ -1,27 +1,25 @@
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 
+import config from "./config/index.js";
 import productRoutes from "./routes/products.js";
 import errorHandler from "./middleware/errorHandler.js";
-
-dotenv.config();
 
 const app = express();
 
 /* -------------------- Security Middleware -------------------- */
 
-// Set secure HTTP headers
+// Secure HTTP headers
 app.use(helmet());
 
-// Rate limiting (100 requests per 15 minutes per IP)
+// Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  windowMs: config.rateLimit.windowMs,
+  max: config.rateLimit.max,
   message: "Too many requests from this IP, please try again later.",
 });
 
@@ -29,8 +27,7 @@ app.use(limiter);
 
 /* -------------------- Logging Middleware -------------------- */
 
-// Log HTTP requests (dev format in development, combined in production)
-if (process.env.NODE_ENV === "production") {
+if (config.env === "production") {
   app.use(morgan("combined"));
 } else {
   app.use(morgan("dev"));
@@ -55,16 +52,13 @@ app.use(errorHandler);
 
 /* -------------------- Database Connection -------------------- */
 
-const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI;
-
 mongoose
-  .connect(MONGODB_URI)
+  .connect(config.database.uri)
   .then(() => {
     console.log("MongoDB connected successfully");
 
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+    app.listen(config.port, () => {
+      console.log(`Server running on port ${config.port}`);
     });
   })
   .catch((error) => {
