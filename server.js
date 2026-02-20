@@ -41,7 +41,7 @@ app.use(express.json());
 
 /* -------------------- Routes -------------------- */
 
-// Health check (deployment monitoring)
+// Health check route (for deployment monitoring)
 app.use("/api/health", healthRoutes);
 
 // Product routes
@@ -58,7 +58,9 @@ app.use(errorHandler);
 /* -------------------- Database Connection -------------------- */
 
 mongoose
-  .connect(config.database.uri)
+  .connect(config.database.uri, {
+    serverSelectionTimeoutMS: 5000, // Prevent infinite hanging if DB is unreachable
+  })
   .then(() => {
     console.log("MongoDB connected successfully");
 
