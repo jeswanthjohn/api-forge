@@ -7,6 +7,7 @@ import morgan from "morgan";
 
 import config from "./config/index.js";
 import productRoutes from "./routes/products.js";
+import healthRoutes from "./routes/health.js";
 import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
@@ -40,6 +41,10 @@ app.use(express.json());
 
 /* -------------------- Routes -------------------- */
 
+// Health check (deployment monitoring)
+app.use("/api/health", healthRoutes);
+
+// Product routes
 app.use("/api/products", productRoutes);
 
 app.get("/", (req, res) => {
