@@ -11,13 +11,12 @@ import healthRoutes from "./routes/health.js";
 import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
+let server; // Will hold the HTTP server instance
 
 /* -------------------- Security Middleware -------------------- */
 
-// Secure HTTP headers
 app.use(helmet());
 
-// Rate limiting
 const limiter = rateLimit({
   windowMs: config.rateLimit.windowMs,
   max: config.rateLimit.max,
@@ -41,10 +40,7 @@ app.use(express.json());
 
 /* -------------------- Routes -------------------- */
 
-// Health check route (for deployment monitoring)
 app.use("/api/health", healthRoutes);
-
-// Product routes
 app.use("/api/products", productRoutes);
 
 app.get("/", (req, res) => {
@@ -55,16 +51,42 @@ app.get("/", (req, res) => {
 
 app.use(errorHandler);
 
+/* -------------------- Graceful Shutdown -------------------- */
+
+const gracefulShutdown = async (signal) => {
+  console.log(`\n${signal} received. Starting graceful shutdown...`);
+
+  try {
+    if (server) {
+      server.close(() => {
+        console.log("HTTP server closed.");
+      });
+    }
+
+    await mongoose.connection.close();
+    console.log("MongoDB connection closed.");
+
+    console.log("Shutdown complete. Exiting process.");
+    process.exit(0);
+  } catch (error) {
+    console.error("Error during shutdown:", error);
+    process.exit(1);
+  }
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
 /* -------------------- Database Connection -------------------- */
 
 mongoose
   .connect(config.database.uri, {
-    serverSelectionTimeoutMS: 5000, // Prevent infinite hanging if DB is unreachable
+    serverSelectionTimeoutMS: 5000,
   })
   .then(() => {
     console.log("MongoDB connected successfully");
 
-    app.listen(config.port, () => {
+    server = app.listen(config.port, () => {
       console.log(`Server running on port ${config.port}`);
     });
   })
