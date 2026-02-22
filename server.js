@@ -11,7 +11,7 @@ import healthRoutes from "./routes/health.js";
 import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
-let server; // Will hold the HTTP server instance
+let server;
 
 /* -------------------- Security Middleware -------------------- */
 
@@ -29,7 +29,7 @@ app.use(limiter);
 
 if (config.env === "production") {
   app.use(morgan("combined"));
-} else {
+} else if (config.env !== "test") {
   app.use(morgan("dev"));
 }
 
@@ -79,18 +79,22 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 /* -------------------- Database Connection -------------------- */
 
-mongoose
-  .connect(config.database.uri, {
-    serverSelectionTimeoutMS: 5000,
-  })
-  .then(() => {
-    console.log("MongoDB connected successfully");
+if (config.env !== "test") {
+  mongoose
+    .connect(config.database.uri, {
+      serverSelectionTimeoutMS: 5000,
+    })
+    .then(() => {
+      console.log("MongoDB connected successfully");
 
-    server = app.listen(config.port, () => {
-      console.log(`Server running on port ${config.port}`);
+      server = app.listen(config.port, () => {
+        console.log(`Server running on port ${config.port}`);
+      });
+    })
+    .catch((error) => {
+      console.error("MongoDB connection failed:", error.message);
+      process.exit(1);
     });
-  })
-  .catch((error) => {
-    console.error("MongoDB connection failed:", error.message);
-    process.exit(1);
-  });
+}
+
+export default app;
