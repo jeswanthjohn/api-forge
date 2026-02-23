@@ -4,10 +4,12 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
+import swaggerUi from "swagger-ui-express";
 
 import config from "./config/index.js";
 import productRoutes from "./routes/products.js";
 import healthRoutes from "./routes/health.js";
+import swaggerSpec from "./config/swagger.js";
 import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
@@ -37,6 +39,10 @@ if (config.env === "production") {
 
 app.use(cors());
 app.use(express.json());
+
+/* -------------------- Swagger Documentation -------------------- */
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /* -------------------- Routes -------------------- */
 
