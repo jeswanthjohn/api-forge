@@ -2,14 +2,14 @@
 
 A production-ready **REST API** built with **Node.js, Express, MongoDB, and Mongoose** that provides full CRUD (Create, Read, Update, Delete) operations for managing products.
 
-This project is designed as a **backend portfolio service** to demonstrate real-world API design, database persistence, environment-based configuration, and cloud deployment.
+This project is designed as a **backend portfolio service** to demonstrate real-world API design, database persistence, testing discipline, monitoring, and cloud deployment.
 
 ---
 
 ## 🌐 Live Deployment
 
 **Base URL**  
-[https://rest-api-jeswanth.onrender.com](https://rest-api-jeswanth.onrender.com)
+https://rest-api-jeswanth.onrender.com
 
 > Deployed on **Render** with a live **MongoDB Atlas** database.  
 > Data persists across redeployments.
@@ -18,13 +18,16 @@ This project is designed as a **backend portfolio service** to demonstrate real-
 
 ## ✨ Key Features
 
-- 📦 Product management via RESTful APIs
+- 📦 Full CRUD operations for product management
 - 🗄 Persistent storage using MongoDB Atlas
-- 🔁 Full CRUD operations (POST, GET, PUT, DELETE)
-- ⚙️ Environment-based configuration with dotenv
-- 🚀 Cloud deployment on Render
-- 🧪 Tested end-to-end using Postman
-- 🧼 Production-safe logging (debug logs removed after verification)
+- 🔐 Security middleware with Helmet and Rate Limiting
+- ⚙️ Environment-based configuration management
+- 📊 Health check endpoint for deployment monitoring (`/api/health`)
+- 🧪 Integration testing with Jest and Supertest
+- 📘 Interactive API documentation with Swagger UI (`/api-docs`)
+- 🚀 Production deployment on Render
+- 🧼 Graceful shutdown handling (SIGTERM / SIGINT)
+- ⏱ MongoDB connection timeout protection
 
 ---
 
@@ -32,10 +35,10 @@ This project is designed as a **backend portfolio service** to demonstrate real-
 
 The API follows standard REST conventions:
 
-- **POST** → create a new product
-- **GET** → retrieve products
-- **PUT** → update an existing product by ID
-- **DELETE** → remove a product by ID
+- **POST** → Create a new product  
+- **GET** → Retrieve products  
+- **PUT** → Update an existing product by ID  
+- **DELETE** → Remove a product by ID  
 
 Each product is stored as a MongoDB document and assigned a unique `_id`, which is used for update and delete operations.
 
@@ -44,107 +47,148 @@ Each product is stored as a MongoDB document and assigned a unique `_id`, which 
 ## 🧰 Tech Stack
 
 ### Backend
-
 - Node.js
 - Express.js
 - MongoDB Atlas
 - Mongoose ODM
+- Joi (validation)
 - dotenv
 
-### Deployment
+### Testing
+- Jest
+- Supertest
 
+### Documentation
+- Swagger UI
+- swagger-jsdoc (OpenAPI 3.0)
+
+### Deployment
 - Platform: Render
 - Service Type: Web Service
 - Runtime: Node.js
 
 ---
 
-## 📦 API Endpoints
+## 📘 Interactive API Documentation
 
-### Get all products
+Swagger UI is integrated for real-time API exploration and testing.
+
+**Local:**  
+http://localhost:3000/api-docs
+
+**Production:**  
+https://rest-api-jeswanth.onrender.com/api-docs
+
+Documentation is generated using OpenAPI 3.0.
+
+---
+
+## 📊 Health Monitoring
+
+A health check endpoint is available for deployment monitoring and uptime verification.
 
 ```http
-GET /api/products
+GET /api/health
+```
+### Example response:
 
-** Response **
-
 ```
-[
-  {
-    "_id": "6963d8dc3d943529c1ce5dde",
-    "name": "Pixel 8",
-    "price": 69999,
-    "category": "electronics",
-    "createdAt": "2026-01-11T17:07:40.009Z",
-    "updatedAt": "2026-01-11T17:07:40.009Z"
-  }
-]
-```
-Create a new product
-```
-POST /api/products
-```
-Create a new product
-```
-POST /api/products
-```
-Response
-
-
-```json
 {
-  "_id": "6963d8dc3d943529c1ce5dde",
-  "name": "Pixel 8",
-  "price": 69999,
-  "category": "electronics",
-  "createdAt": "2026-01-11T17:07:40.009Z",
-  "updatedAt": "2026-01-11T17:07:40.009Z"
+  "status": "ok",
+  "uptime": 123.45,
+  "environment": "production",
+  "database": "connected",
+  "timestamp": "2026-02-20T17:57:53.657Z"
 }
 ```
-Get a single product
+Returns 503 if database connectivity fails.
+
+## 📦 API Endpoints
+
+### Get All Products
+
+```
+GET /api/products
+```
+
+### Create Product
+```
+POST /api/products
+```
+
+Example request body:
+
+```
+{
+  "name": "Pixel 8",
+  "price": 69999,
+  "category": "electronics"
+}
+```
+### Get Single Product
 ```
 GET /api/products/:id
 ```
-Update a product
-```
+### Update Product
 PUT /api/products/:id
-```
-Request Body
-```
-json
-{
+
+Example request body:
+
+```{
   "price": 64999
 }
 ```
 
-Delete a product
+### Delete Product
 ```
 DELETE /api/products/:id
 ```
-## ⚙️ Environment Configuration
-Create a .env file in the project root (not committed):
 
+## ⚙️ Environment Configuration
+
+- Create a .env file in the project root (not committed):
 ```
 PORT=5000
 MONGODB_URI=your_mongodb_atlas_connection_string
 ```
-## 🧪 Testing
-- All endpoints were tested using Postman
-- POST and GET operations were verified with real persisted data
-- MongoDB persistence confirmed across Render redeployments
+
+## 🧪 Automated Testing
+
+- Integration tests are implemented using Jest and Supertest.
+
+Run tests locally:
+```bash
+npm test
+```
+* Test coverage includes:
+  - Product creation endpoint (POST /api/products)
+  - Product retrieval endpoint (GET /api/products)
+  - Database cleanup between test runs
+  - Environment isolation using NODE_ENV=test
+
+## 🧪 Manual API Verification
+- All endpoints were verified using Postman against both the local server and the live deployed service.
+* Manual validation ensured:
+  - CRUD operations behave correctly
+  - MongoDB persistence across redeployments
+  - API responses match expected structure
+  - Error handling works under invalid input
+  - Health endpoint responds correctly
 
 ## 📌 Notes
-- Temporary sanity-check logs were used during development and removed after verification
-- Only startup and connection logs are retained
-- This project focuses on backend correctness and reliability
+- Temporary development logs were removed after verification.
+- Only startup and connection logs are retained.
+- The application does not start unless MongoDB connects successfully.
+- Production-safe shutdown logic ensures proper resource cleanup.
 
-## 🔮 Planned Enhancements
-- Input validation and schema constraints
-- Centralized error handling
-- Pagination and filtering
-- Authentication and authorization (JWT)
+## 🔮 Future Enhancements
+- JWT authentication & role-based authorization
+- CI pipeline integration (GitHub Actions)
+- In-memory MongoDB for isolated test database
+- Expanded request/response schemas in Swagger
+- API versioning strategy
 
 ## 👤 Author
-**Jeswanth Reddy B.** 
+**Jeswanth Reddy B.**
 Aspiring Full-Stack Developer
 Focused on building reliable, production-grade backend systems
