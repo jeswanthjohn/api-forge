@@ -1,5 +1,6 @@
 import Product from "../models/Product.js";
 import AppError from "../utils/AppError.js";
+import { successResponse } from "../utils/apiResponse.js";
 
 // GET /api/products
 export const getAllProducts = async (req, res, next) => {
@@ -43,7 +44,7 @@ export const getAllProducts = async (req, res, next) => {
       .skip(skip)
       .limit(pageSize);
 
-    res.status(200).json(products);
+    return successResponse(res, 200, products, "Products fetched successfully");
   } catch (err) {
     next(err);
   }
@@ -59,7 +60,8 @@ export const createProduct = async (req, res, next) => {
     }
 
     const product = await Product.create(req.body);
-    res.status(201).json(product);
+
+    return successResponse(res, 201, product, "Product created successfully");
   } catch (err) {
     next(err);
   }
@@ -74,7 +76,7 @@ export const getProductById = async (req, res, next) => {
       return next(new AppError("Product not found", 404));
     }
 
-    res.status(200).json(product);
+    return successResponse(res, 200, product, "Product fetched successfully");
   } catch (err) {
     next(err);
   }
@@ -99,7 +101,12 @@ export const updateProduct = async (req, res, next) => {
       return next(new AppError("Product not found", 404));
     }
 
-    res.status(200).json(updatedProduct);
+    return successResponse(
+      res,
+      200,
+      updatedProduct,
+      "Product updated successfully"
+    );
   } catch (err) {
     next(err);
   }
@@ -114,10 +121,12 @@ export const deleteProduct = async (req, res, next) => {
       return next(new AppError("Product not found", 404));
     }
 
-    res.status(200).json({
-      status: "success",
-      message: "Product deleted successfully",
-    });
+    return successResponse(
+      res,
+      200,
+      null,
+      "Product deleted successfully"
+    );
   } catch (err) {
     next(err);
   }
