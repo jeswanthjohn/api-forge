@@ -1,6 +1,10 @@
 import Product from "../models/Product.js";
 import AppError from "../utils/AppError.js";
 import { successResponse } from "../utils/apiResponse.js";
+import mongoose from "mongoose";
+
+// Helper: validate ObjectId
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // GET /api/products
 export const getAllProducts = async (req, res, next) => {
@@ -70,7 +74,13 @@ export const createProduct = async (req, res, next) => {
 // GET /api/products/:id
 export const getProductById = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return next(new AppError("Invalid product ID", 400));
+    }
+
+    const product = await Product.findById(id);
 
     if (!product) {
       return next(new AppError("Product not found", 404));
@@ -85,17 +95,21 @@ export const getProductById = async (req, res, next) => {
 // PUT /api/products/:id
 export const updateProduct = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const { name, price } = req.body;
+
+    if (!isValidObjectId(id)) {
+      return next(new AppError("Invalid product ID", 400));
+    }
 
     if (!name || price == null) {
       return next(new AppError("Name and price are required", 400));
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const updatedProduct = await Product.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!updatedProduct) {
       return next(new AppError("Product not found", 404));
@@ -115,18 +129,19 @@ export const updateProduct = async (req, res, next) => {
 // DELETE /api/products/:id
 export const deleteProduct = async (req, res, next) => {
   try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return next(new AppError("Invalid product ID", 400));
+    }
+
+    const deletedProduct = await Product.findByIdAndDelete(id);
 
     if (!deletedProduct) {
       return next(new AppError("Product not found", 404));
     }
 
-    return successResponse(
-      res,
-      200,
-      null,
-      "Product deleted successfully"
-    );
+    return successResponse(res, 200, null, "Product deleted successfully");
   } catch (err) {
     next(err);
   }
