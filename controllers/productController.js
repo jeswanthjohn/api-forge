@@ -22,6 +22,7 @@ export const getAllProducts = async (req, res, next) => {
 
     if (minPrice || maxPrice) {
       filter.price = {};
+
       if (minPrice) filter.price.$gte = Number(minPrice);
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
@@ -38,6 +39,7 @@ export const getAllProducts = async (req, res, next) => {
 
     if (sort) {
       const allowedSortFields = ["price", "-price", "createdAt", "-createdAt"];
+
       if (allowedSortFields.includes(sort)) {
         sortOption = sort;
       }
@@ -48,7 +50,12 @@ export const getAllProducts = async (req, res, next) => {
       .skip(skip)
       .limit(pageSize);
 
-    return successResponse(res, 200, products, "Products fetched successfully");
+    return successResponse(
+      res,
+      200,
+      products,
+      "Products fetched successfully"
+    );
   } catch (err) {
     next(err);
   }
@@ -57,15 +64,36 @@ export const getAllProducts = async (req, res, next) => {
 // POST /api/products
 export const createProduct = async (req, res, next) => {
   try {
-    const { name, price } = req.body;
+    const { name, price, category } = req.body;
 
-    if (!name || price == null) {
-      return next(new AppError("Name and price are required", 400));
+    if (!name || price == null || !category) {
+      return next(
+        new AppError("Name, price and category are required", 400)
+      );
+    }
+
+    const existingProduct = await Product.findOne({
+      name: name.trim(),
+      category: category.trim(),
+    });
+
+    if (existingProduct) {
+      return next(
+        new AppError(
+          "A product with the same name already exists in this category",
+          409
+        )
+      );
     }
 
     const product = await Product.create(req.body);
 
-    return successResponse(res, 201, product, "Product created successfully");
+    return successResponse(
+      res,
+      201,
+      product,
+      "Product created successfully"
+    );
   } catch (err) {
     next(err);
   }
@@ -86,7 +114,12 @@ export const getProductById = async (req, res, next) => {
       return next(new AppError("Product not found", 404));
     }
 
-    return successResponse(res, 200, product, "Product fetched successfully");
+    return successResponse(
+      res,
+      200,
+      product,
+      "Product fetched successfully"
+    );
   } catch (err) {
     next(err);
   }
@@ -96,14 +129,31 @@ export const getProductById = async (req, res, next) => {
 export const updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, price } = req.body;
+    const { name, price, category } = req.body;
 
     if (!isValidObjectId(id)) {
       return next(new AppError("Invalid product ID", 400));
     }
 
-    if (!name || price == null) {
-      return next(new AppError("Name and price are required", 400));
+    if (!name || price == null || !category) {
+      return next(
+        new AppError("Name, price and category are required", 400)
+      );
+    }
+
+    const duplicateProduct = await Product.findOne({
+      name: name.trim(),
+      category: category.trim(),
+      _id: { $ne: id },
+    });
+
+    if (duplicateProduct) {
+      return next(
+        new AppError(
+          "Another product with the same name already exists in this category",
+          409
+        )
+      );
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(id, req.body, {
@@ -141,7 +191,12 @@ export const deleteProduct = async (req, res, next) => {
       return next(new AppError("Product not found", 404));
     }
 
-    return successResponse(res, 200, null, "Product deleted successfully");
+    return successResponse(
+      res,
+      200,
+      null,
+      "Product deleted successfully"
+    );
   } catch (err) {
     next(err);
   }

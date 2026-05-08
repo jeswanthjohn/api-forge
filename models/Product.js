@@ -36,9 +36,14 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-// Compound index for common query pattern:
-// Filtering by category + sorting by price
+// Compound index for category + price query optimization
 productSchema.index({ category: 1, price: -1 });
+
+// Prevent duplicate product names within same category
+productSchema.index(
+  { name: 1, category: 1 },
+  { unique: true }
+);
 
 productSchema.set("toJSON", {
   transform: (doc, ret) => {

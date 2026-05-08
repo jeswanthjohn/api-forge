@@ -10,6 +10,16 @@ const sendErrorDev = (err, res) => {
 };
 
 const sendErrorProd = (err, res) => {
+  // Handle duplicate key errors
+  if (err.code === 11000) {
+    return errorResponse(
+      res,
+      409,
+      "Duplicate resource already exists"
+    );
+  }
+
+  // Operational errors
   if (err.isOperational) {
     return errorResponse(res, err.statusCode, err.message);
   }
