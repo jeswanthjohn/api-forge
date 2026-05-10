@@ -31,8 +31,31 @@ export const getAllProducts = async (req, res, next) => {
       filter.category = category;
     }
 
-    const pageNumber = Math.max(Number(page), 1);
-    const pageSize = Math.max(Number(limit), 1);
+    // Validate pagination inputs
+    const pageNumber = Number(page);
+    const pageSize = Number(limit);
+
+    if (
+      Number.isNaN(pageNumber) ||
+      Number.isNaN(pageSize) ||
+      pageNumber < 1 ||
+      pageSize < 1
+    ) {
+      return next(
+        new AppError(
+          "Page and limit must be positive numbers greater than 0",
+          400
+        )
+      );
+    }
+
+    // Prevent excessive payload requests
+    if (pageSize > 100) {
+      return next(
+        new AppError("Limit cannot exceed 100 items per request", 400)
+      );
+    }
+
     const skip = (pageNumber - 1) * pageSize;
 
     let sortOption = { createdAt: -1 };
@@ -45,6 +68,21 @@ export const getAllProducts = async (req, res, next) => {
       }
     }
 
+    // Count total matching products
+    const totalProducts = await Product.countDocuments(filter);
+
+    const totalPages = Math.ceil(totalProducts / pageSize);
+
+    // Handle out-of-range pages
+    if (totalPages > 0 && pageNumber > totalPages) {
+      return next(
+        new AppError(
+          `Requested page exceeds total available pages (${totalPages})`,
+          400
+        )
+      );
+    }
+
     const products = await Product.find(filter)
       .sort(sortOption)
       .skip(skip)
@@ -53,7 +91,17 @@ export const getAllProducts = async (req, res, next) => {
     return successResponse(
       res,
       200,
-      products,
+      {
+        products,
+        pagination: {
+          totalProducts,
+          totalPages,
+          currentPage: pageNumber,
+          pageSize,
+          hasNextPage: pageNumber < totalPages,
+          hasPreviousPage: pageNumber > 1,
+        },
+      },
       "Products fetched successfully"
     );
   } catch (err) {
