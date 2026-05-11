@@ -15,6 +15,10 @@ import errorHandler from "./middleware/errorHandler.js";
 const app = express();
 let server;
 
+/* -------------------- Environment Validation -------------------- */
+
+console.log(`Running in ${config.env} mode`);
+
 /* -------------------- Security Middleware -------------------- */
 
 app.use(helmet());
