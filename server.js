@@ -12,6 +12,16 @@ import healthRoutes from "./routes/health.js";
 import swaggerSpec from "./config/swagger.js";
 import errorHandler from "./middleware/errorHandler.js";
 
+/* -------------------- Global Process Error Handlers -------------------- */
+
+// Handle uncaught synchronous exceptions
+process.on("uncaughtException", (error) => {
+  console.error("UNCAUGHT EXCEPTION 💥");
+  console.error(error.name, error.message);
+
+  process.exit(1);
+});
+
 const app = express();
 let server;
 
@@ -106,5 +116,29 @@ if (config.env !== "test") {
       process.exit(1);
     });
 }
+
+/* -------------------- Unhandled Promise Rejection Handler -------------------- */
+
+// Handle rejected async promises not caught elsewhere
+process.on("unhandledRejection", async (error) => {
+  console.error("UNHANDLED REJECTION 💥");
+  console.error(error.name, error.message);
+
+  try {
+    if (server) {
+      server.close(() => {
+        console.log("HTTP server closed due to unhandled rejection.");
+      });
+    }
+
+    await mongoose.connection.close();
+    console.log("MongoDB connection closed.");
+
+    process.exit(1);
+  } catch (shutdownError) {
+    console.error("Error during unhandled rejection shutdown:", shutdownError);
+    process.exit(1);
+  }
+});
 
 export default app;
