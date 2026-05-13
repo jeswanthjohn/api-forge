@@ -11,6 +11,7 @@ import productRoutes from "./routes/products.js";
 import healthRoutes from "./routes/health.js";
 import swaggerSpec from "./config/swagger.js";
 import errorHandler from "./middleware/errorHandler.js";
+import sanitizeRequest from "./middleware/sanitize.js";
 
 /* -------------------- Global Process Error Handlers -------------------- */
 
@@ -52,7 +53,15 @@ if (config.env === "production") {
 /* -------------------- General Middleware -------------------- */
 
 app.use(cors());
-app.use(express.json());
+
+app.use(
+  express.json({
+    limit: "10kb",
+  })
+);
+
+// Request sanitization middleware
+app.use(sanitizeRequest);
 
 /* -------------------- Swagger Documentation -------------------- */
 
