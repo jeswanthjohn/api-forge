@@ -58,14 +58,29 @@ export const getAllProducts = async (req, res, next) => {
 
     const skip = (pageNumber - 1) * pageSize;
 
+    // Validate sorting fields
+    const allowedSortFields = [
+      "price",
+      "-price",
+      "createdAt",
+      "-createdAt",
+    ];
+
     let sortOption = { createdAt: -1 };
 
     if (sort) {
-      const allowedSortFields = ["price", "-price", "createdAt", "-createdAt"];
-
-      if (allowedSortFields.includes(sort)) {
-        sortOption = sort;
+      if (!allowedSortFields.includes(sort)) {
+        return next(
+          new AppError(
+            `Invalid sort field. Allowed values are: ${allowedSortFields.join(
+              ", "
+            )}`,
+            400
+          )
+        );
       }
+
+      sortOption = sort;
     }
 
     // Count total matching products
