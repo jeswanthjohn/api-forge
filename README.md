@@ -51,6 +51,23 @@ Each product is stored as a MongoDB document and assigned a unique `_id`, which 
 
 ---
 
+## 🗄 Database Design
+
+Products are stored as MongoDB documents using Mongoose schemas.
+
+The schema includes:
+
+* Validation constraints for required fields
+* Length validation for text fields
+* Numeric validation for price values
+* Compound indexing to optimize common query patterns
+* Duplicate product prevention through database-level constraints
+
+Indexes are applied to frequently queried fields to improve filtering and sorting performance as dataset size grows.
+
+
+---
+
 ## 🛡 Security & Reliability Features
 
 The API includes several production-oriented safeguards and defensive coding practices:
@@ -66,6 +83,24 @@ The API includes several production-oriented safeguards and defensive coding pra
 - Duplicate product prevention using compound database indexes
 
 These protections improve API reliability, predictability, and operational safety in production-like environments.
+
+---
+
+## ⚠️ Error Handling Strategy
+
+The API uses centralized error handling to provide predictable responses across all endpoints.
+
+Handled scenarios include:
+
+* Invalid MongoDB ObjectIds
+* Validation failures
+* Duplicate product creation attempts
+* Invalid pagination parameters
+* Invalid sorting parameters
+* Missing resources (404)
+* Internal server errors
+
+Operational errors return structured responses while unexpected failures are safely handled through global error middleware.
 
 ---
 
@@ -282,6 +317,20 @@ npm test
   - Database cleanup between test runs
   - Environment isolation using NODE_ENV=test
 
+### Testing Approach
+
+Integration tests focus on validating API behavior rather than implementation details.
+
+The test suite verifies:
+
+* Endpoint functionality
+* Request validation behavior
+* Response structures
+* Database interactions
+* Environment isolation
+
+This approach helps ensure application behavior remains stable during future refactoring.
+---
 ## 🧪 Manual API Verification
 - All endpoints were verified using Postman against both the local server and the live deployed service.
 * Manual validation ensured:
@@ -310,4 +359,4 @@ npm test
 ## 👤 Author
 **Jeswanth Reddy B.**
 Aspiring Full-Stack Developer
-Focused on building reliable, production-grade backend systems
+Focused on backend development, API design, and production-oriented Node.js applications.
